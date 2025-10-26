@@ -38,7 +38,7 @@ with st.spinner('Connecting to database...'):
 
     try:
         # Query data
-        query = "SELECT * FROM gendergap_edu_sex_long"
+        query = "SELECT * FROM gender_gap_edu_sex_wide_v3"
         gendergap_edu_sex = pd.read_sql(query, conn)
         st.dataframe(gendergap_edu_sex)
     except Exception as e:
