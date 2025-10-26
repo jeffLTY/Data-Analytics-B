@@ -47,7 +47,6 @@ with st.spinner('Connecting to database...'):
         # Close connection
         conn.close()
 
-
 def _plot_series(series, series_name, series_index=0, ax=None):
     palette = list(sns.palettes.mpl_palette('Dark2'))
     xs = pd.to_numeric(series['year'], errors='coerce')
