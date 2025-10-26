@@ -47,18 +47,47 @@ with st.spinner('Connecting to database...'):
         # Close connection
         conn.close()
 
+# Check and display column names
+st.write("Available columns:", gendergap_edu_sex.columns.tolist())
+
 def _plot_series(series, series_name, series_index=0):
-  palette = list(sns.palettes.mpl_palette('Dark2'))
-  xs = series['year']
-  ys = series['gap_change_from_first']
+    palette = list(sns.palettes.mpl_palette('Dark2'))
+    # Check if required columns exist
+    required_columns = ['year', 'gap_change_from_first']
+    missing_columns = [col for col in required_columns if col not in series.columns]
+    
+    if missing_columns:
+        st.error(f"Missing required columns: {missing_columns}")
+        return
+        
+    xs = series['year']
+    ys = series['gap_change_from_first']
+    plt.plot(xs, ys, label=series_name, color=palette[series_index % len(palette)])
 
-  plt.plot(xs, ys, label=series_name, color=palette[series_index % len(palette)])
-
-fig, ax = plt.subplots(figsize=(10, 5.2), layout='constrained')
-df_sorted = gendergap_edu_sex.sort_values('year', ascending=True)
-for i, (series_name, series) in enumerate(df_sorted.groupby('education')):
-  _plot_series(series, series_name, i)
-  fig.legend(title='education', bbox_to_anchor=(1, 1), loc='upper left')
-sns.despine(fig=fig, ax=ax)
-plt.xlabel('year')
-_ = plt.ylabel('gap_change_from_first')
+try:
+    fig, ax = plt.subplots(figsize=(10, 5.2), layout='constrained')
+    
+    # Verify column names before sorting
+    if 'year' not in gendergap_edu_sex.columns:
+        st.error("Column 'year' not found in the dataset")
+        st.stop()
+        
+    if 'education' not in gendergap_edu_sex.columns:
+        st.error("Column 'education' not found in the dataset")
+        st.stop()
+        
+    df_sorted = gendergap_edu_sex.sort_values('year', ascending=True)
+    
+    for i, (series_name, series) in enumerate(df_sorted.groupby('education')):
+        _plot_series(series, series_name, i)
+    
+    fig.legend(title='education', bbox_to_anchor=(1, 1), loc='upper left')
+    sns.despine(fig=fig, ax=ax)
+    plt.xlabel('year')
+    plt.ylabel('gap_change_from_first')
+    
+    # Display the plot in Streamlit
+    st.pyplot(fig)
+    
+except Exception as e:
+    st.error(f"Error creating visualization: {e}")
