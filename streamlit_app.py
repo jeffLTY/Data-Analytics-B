@@ -6,29 +6,47 @@
 # )
 
 import streamlit as st
-import mysql.connector
 import pandas as pd
 import plotly.express as px
-
-# Read connection parameters securely from Streamlit secrets
-conn = mysql.connector.connect(
-    host=st.secrets["mysql"]["host"],
-    user=st.secrets["mysql"]["user"],
-    password=st.secrets["mysql"]["password"],
-    database=st.secrets["mysql"]["database"],
-    port=st.secrets["mysql"]["port"]
-)
-
-# Query data
-query = "SELECT * FROM gender_gap_job_sex_wide"
-gendergap_job_sex = pd.read_sql(query, conn)
-st.dataframe(gendergap_job_sex)
-
-# Close connection
-conn.close()
-
 from matplotlib import pyplot as plt
 import seaborn as sns
+
+try:
+    import mysql.connector
+except ImportError:
+    st.error("MySQL Connector not found. Please install requirements using 'pip install -r requirements.txt'")
+    st.stop()
+
+# Display loading message
+st.title("🎈 Data Analytics Dashboard")
+with st.spinner('Connecting to database...'):
+    try:
+        # Read connection parameters securely from Streamlit secrets
+        conn = mysql.connector.connect(
+            host=st.secrets["mysql"]["host"],
+            user=st.secrets["mysql"]["user"],
+            password=st.secrets["mysql"]["password"],
+            database=st.secrets["mysql"]["database"],
+            port=st.secrets["mysql"]["port"]
+        )
+    except mysql.connector.Error as e:
+        st.error(f"Error connecting to MySQL database: {e}")
+        st.stop()
+    except KeyError as e:
+        st.error("Missing MySQL configuration in secrets. Please check your .streamlit/secrets.toml file.")
+        st.stop()
+
+    try:
+        # Query data
+        query = "SELECT * FROM gender_gap_job_sex_wide"
+        gendergap_job_sex = pd.read_sql(query, conn)
+        st.dataframe(gendergap_job_sex)
+    except Exception as e:
+        st.error(f"Error querying database: {e}")
+    finally:
+        # Close connection
+        conn.close()
+
 def _plot_series(series, series_name, series_index=0):
   palette = list(sns.palettes.mpl_palette('Dark2'))
   xs = series['year']
