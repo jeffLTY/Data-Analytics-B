@@ -60,13 +60,13 @@ df_sorted = gendergap_edu_sex.sort_values('year', ascending=True)
 for i, (series_name, series) in enumerate(df_sorted.groupby('education')):
      _plot_series(series, series_name, i, ax=ax)
 
-    # format axes and legend once (not inside loop)
-    ax.set_xlabel('year')
-    ax.set_ylabel('gap_change_from_first')
-    sns.despine(fig=fig, ax=ax)
-    ax.legend(title='education', bbox_to_anchor=(1, 1), loc='upper left')
+# format axes and legend once (not inside loop)
+ax.set_xlabel('year')
+ax.set_ylabel('gap_change_from_first')
+sns.despine(fig=fig, ax=ax)
+ax.legend(title='education', bbox_to_anchor=(1, 1), loc='upper left')
 
-    # explicitly render Matplotlib figure in Streamlit
-    st.pyplot(fig)
+# explicitly render Matplotlib figure in Streamlit
+st.pyplot(fig)
 
 
