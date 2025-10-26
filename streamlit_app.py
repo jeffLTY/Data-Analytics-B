@@ -40,47 +40,69 @@ with st.spinner('Connecting to database...'):
         # Query data
         query = "SELECT * FROM gender_gap_edu_sex_wide_v2"
         gendergap_edu_sex = pd.read_sql(query, conn)
-        st.dataframe(gendergap_edu_sex)
+        gendergap_edu_sex #st.dataframe(gendergap_edu_sex)
     except Exception as e:
         st.error(f"Error querying database: {e}")
     finally:
         # Close connection
         conn.close()
 
-def _plot_series(series, series_name, series_index=0, ax=None):
-    palette = list(sns.palettes.mpl_palette('Dark2'))
-    # minimal guard: if required columns missing, skip the series
-    if 'year' not in series.columns or 'gap_change_from_first' not in series.columns:
-        return
-    # ensure numeric x/y for safe plotting
-    xs = pd.to_numeric(series['year'], errors='coerce')
-    ys = pd.to_numeric(series['gap_change_from_first'], errors='coerce')
-    if ax is None:
-        ax = plt.gca()
-    ax.plot(xs, ys, label=series_name, color=palette[series_index % len(palette)])
 
-try:
-    fig, ax = plt.subplots(figsize=(10, 5.2), layout='constrained')
+from matplotlib import pyplot as plt
+import seaborn as sns
+def _plot_series(series, series_name, series_index=0):
+  palette = list(sns.palettes.mpl_palette('Dark2'))
+  xs = series['year']
+  ys = series['gap_change_from_first']
 
-    # check dataset has expected columns
-    if 'year' not in gendergap_edu_sex.columns or 'education' not in gendergap_edu_sex.columns:
-        st.warning("Cannot draw chart: dataset is missing 'year' or 'education' columns. Available: " + ", ".join(gendergap_edu_sex.columns.tolist()))
-    else:
-        # convert and sort by year
-        gendergap_edu_sex['year'] = pd.to_numeric(gendergap_edu_sex['year'], errors='coerce')
-        df_sorted = gendergap_edu_sex.sort_values('year', ascending=True)
+  plt.plot(xs, ys, label=series_name, color=palette[series_index % len(palette)])
 
-        for i, (series_name, series) in enumerate(df_sorted.groupby('education')):
-            _plot_series(series, series_name, i, ax=ax)
+fig, ax = plt.subplots(figsize=(10, 5.2), layout='constrained')
+df_sorted = gendergap_edu_sex.sort_values('year', ascending=True)
+for i, (series_name, series) in enumerate(df_sorted.groupby('education')):
+  _plot_series(series, series_name, i)
+  fig.legend(title='education', bbox_to_anchor=(1, 1), loc='upper left')
+sns.despine(fig=fig, ax=ax)
+plt.xlabel('year')
+_ = plt.ylabel('gap_change_from_first')
 
-        # format axes and legend once (not inside loop)
-        ax.set_xlabel('year')
-        ax.set_ylabel('gap_change_from_first')
-        sns.despine(fig=fig, ax=ax)
-        ax.legend(title='education', bbox_to_anchor=(1, 1), loc='upper left')
 
-        # explicitly render Matplotlib figure in Streamlit
-        st.pyplot(fig)
 
-except Exception as e:
-    st.error(f"Error creating visualization: {e}")
+
+# def _plot_series(series, series_name, series_index=0, ax=None):
+#     palette = list(sns.palettes.mpl_palette('Dark2'))
+#     # minimal guard: if required columns missing, skip the series
+#     if 'year' not in series.columns or 'gap_change_from_first' not in series.columns:
+#         return
+#     # ensure numeric x/y for safe plotting
+#     xs = pd.to_numeric(series['year'], errors='coerce')
+#     ys = pd.to_numeric(series['gap_change_from_first'], errors='coerce')
+#     if ax is None:
+#         ax = plt.gca()
+#     ax.plot(xs, ys, label=series_name, color=palette[series_index % len(palette)])
+
+# try:
+#     fig, ax = plt.subplots(figsize=(10, 5.2), layout='constrained')
+
+#     # check dataset has expected columns
+#     if 'year' not in gendergap_edu_sex.columns or 'education' not in gendergap_edu_sex.columns:
+#         st.warning("Cannot draw chart: dataset is missing 'year' or 'education' columns. Available: " + ", ".join(gendergap_edu_sex.columns.tolist()))
+#     else:
+#         # convert and sort by year
+#         gendergap_edu_sex['year'] = pd.to_numeric(gendergap_edu_sex['year'], errors='coerce')
+#         df_sorted = gendergap_edu_sex.sort_values('year', ascending=True)
+
+#         for i, (series_name, series) in enumerate(df_sorted.groupby('education')):
+#             _plot_series(series, series_name, i, ax=ax)
+
+#         # format axes and legend once (not inside loop)
+#         ax.set_xlabel('year')
+#         ax.set_ylabel('gap_change_from_first')
+#         sns.despine(fig=fig, ax=ax)
+#         ax.legend(title='education', bbox_to_anchor=(1, 1), loc='upper left')
+
+#         # explicitly render Matplotlib figure in Streamlit
+#         st.pyplot(fig)
+
+# except Exception as e:
+#     st.error(f"Error creating visualization: {e}")
