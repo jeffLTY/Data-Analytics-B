@@ -52,7 +52,8 @@ def _plot_series(series, series_name, series_index=0, ax=None):
     palette = list(sns.palettes.mpl_palette('Dark2'))
     xs = pd.to_numeric(series['year'], errors='coerce')
     ys = pd.to_numeric(series['gap_change_from_first'], errors='coerce')
-
+    
+    ax.plot(xs, ys, label=series_name, color=palette[series_index % len(palette)])
     fig, ax = plt.subplots(figsize=(10, 5.2), layout='constrained')
 
     gendergap_edu_sex['year'] = pd.to_numeric(gendergap_edu_sex['year'], errors='coerce')
